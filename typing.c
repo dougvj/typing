@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <signal.h>
 
 // This function draws the buffer at a given position (start) and at an offset.
 // from the center. Rows and Columns are the center of the screen. This function
@@ -115,19 +116,51 @@ double get_time() {
   return t.tv_sec + t.tv_usec * 1e-6;
 }
 
+typedef struct {
+  double start_time;
+  int chr, wd, incor;
+} TypingStats;
+
 // This function prints real time statistics on the bottom of the page
-void print_stats(int chr, int wd, double time, int incor) {
+void print_stats(TypingStats *stats) {
+  double time = get_time() - stats->start_time;
+  int chr = stats->chr;
+  int incor = stats->incor;
+  int wd = (chr - incor) / 5;
   attron(COLOR_PAIR(4));
-  printw("cps: %.3hhf cpm: %.3hhf wps: %.3hhf wpm: %.3hhf accuracy: %2.1f",
-         chr / time, chr / time * 60, wd / time, wd / time * 60,
+  printw("apm: %.3f wpm: %.3f accuracy: %2.1f",
+         chr / time, wd / time * 60,
          100 * (chr - incor) / (float)chr);
   attroff(COLOR_PAIR(4));
 }
 
+void print_final_stats(TypingStats *stats) {
+  double time = get_time() - stats->start_time;
+  int chr = stats->chr;
+  int incor = stats->incor;
+  int wd = (chr - incor) / 5;
+  printf("actions per minute: %.3f\n"
+         "words per minute: %.3f\n"
+         "accuracy: %2.1f\n",
+         chr / time * 60,
+         wd / time * 60,
+         100.0 * (chr - incor) / (float)chr);
+
+}
+
 void quit_error(char *err) {
   endwin();
-  fprintf(stderr, err);
+  fprintf(stderr, "%s", err);
+  exit(0);
+}
 
+TypingStats* _current_stats = NULL;
+
+void handle_signal(int sig) {
+  endwin();
+  if (_current_stats)  {
+    print_final_stats(_current_stats);
+  }
   exit(0);
 }
 
@@ -169,8 +202,7 @@ void typing(FILE *desc) {
   int spos = 0;
   int cpos = 0;
   int rows, columns;
-  int wd = 0, chr = 0, incor = 0;
-  double time = 0;
+  TypingStats stats = {};
   // get current window size
   getmaxyx(stdscr, rows, columns);
   // Draw our window for the first time
@@ -191,8 +223,11 @@ void typing(FILE *desc) {
       continue;
     }
     // If this is the first keypress, record the time
-    if (time == 0)
-      time = get_time();
+    // and the current stats
+    if (stats.start_time == 0) {
+      stats.start_time = get_time();
+      _current_stats = &stats;
+    }
     // If this is the enter key, treat as space
     if (ch == '\n')
       ch = ' ';
@@ -209,7 +244,7 @@ void typing(FILE *desc) {
       pos++;
       cpos++;
     } else {
-      incor++;
+      stats.incor++;
     }
     // If we have reached the middle of the screen, then we need to redraw
     // the screen with different offsets and keep the cursor in the middle.
@@ -219,13 +254,10 @@ void typing(FILE *desc) {
       redraw(buffer, input, spos, cpos, rows, columns);
     }
     // Mark keystroke count
-    chr++;
-    // Count a word for every time we go past a space
-    if (ch == ' ' && !wrong)
-      wd++;
+    stats.chr++;
     // Print the statistics on the bottom and restor the cursor after
     move(rows - 2, 0);
-    print_stats(chr, wd, get_time() - time, incor);
+    print_stats(&stats);
     printw("\npos: %i spos: %i cpos: %i fsize: %i", pos, spos, cpos, fsize);
     move(rows / 2, spos);
     // redraw the screen after every stroke
@@ -233,14 +265,13 @@ void typing(FILE *desc) {
   }
   // End the program and print the statistics
   endwin();
-  time = get_time() - time;
-  printf("characters per second: %.3hhf\ncharacters per minute: %.3hhf\nwords "
-         "per second: %.3hhf\nwords per minute: %.3hhf\naccuracy:%2.1f\n",
-         chr / time, chr / time * 60, wd / time, wd / time * 60,
-         100 * (chr - incor) / (float)chr);
+  print_final_stats(&stats);
+  _current_stats = NULL;
 }
 
 int main(int argc, char **argv) {
+  signal(SIGINT, handle_signal);
+  signal(SIGTERM, handle_signal);
   if (argc >= 2) {
     FILE *input = fopen(argv[1], "r");
     typing(input);
