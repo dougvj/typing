@@ -129,7 +129,7 @@ void print_stats(TypingStats *stats) {
   int wd = (chr - incor) / 5;
   attron(COLOR_PAIR(4));
   printw("apm: %.3f wpm: %.3f accuracy: %2.1f",
-         chr / time, wd / time * 60,
+         chr / time * 60, wd / time * 60,
          100 * (chr - incor) / (float)chr);
   attroff(COLOR_PAIR(4));
 }
