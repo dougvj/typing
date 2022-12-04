@@ -151,7 +151,7 @@ void print_final_stats(TypingStats *stats) {
 void quit_error(char *err) {
   endwin();
   fprintf(stderr, "%s", err);
-  exit(0);
+  exit(1);
 }
 
 TypingStats* _current_stats = NULL;
