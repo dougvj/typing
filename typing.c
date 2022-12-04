@@ -171,7 +171,6 @@ void handle_signal(int sig) {
 void typing(FILE *desc) {
   // Initialized ncurses
   initCurses();
-  int csize = 0;
   char *buffer;
   char *input;
   if (desc == NULL) {
