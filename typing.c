@@ -179,22 +179,24 @@ void typing(FILE *desc) {
   // Find out how large our file is
   fseek(desc, 0L, SEEK_END);
   int fsize = ftell(desc);
+  // Go back to the beginning of the file
   fseek(desc, 0L, SEEK_SET);
   // Allocate and initialize our buffers (plus 1 for null termination)
   buffer = malloc(fsize + 1);
   input = malloc(fsize + 1);
   memset(input, 0, fsize + 1);
   memset(buffer, 0, fsize + 1);
-  int ch = 10; // cannot be initialized to 0 because that is EOF
+  int ch = fgetc(desc);
   int pos;
   // Read in characters skipping any line or tab characters
   // TODO sanitize for ASCII or valid typable UTF characters only.
-  for (pos = 0; ch != EOF; ch = getc(desc), pos++) {
-    if (ch == '\n' || ch == '\t' || ch == '\r') {
-      pos--;
-      continue;
+  for (pos = 0; ch != EOF; ch = fgetc(desc)) {
+    if (ch == '\t' || ch == '\r') {
+    } else if (ch == '\n') {
+      buffer[pos++] = ' ';
+    } else {
+      buffer[pos++] = ch;
     }
-    buffer[pos] = ch;
   }
   // Set our variables
   pos = 0;

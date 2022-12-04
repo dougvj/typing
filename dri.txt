@@ -1,1 +1,6 @@
-Several open source DRI drivers have been written, including ones for ATI Mach64, ATI Rage128, ATI Radeon, 3dfx Voodoo3 through Voodoo5, Matrox G200 through G400, SiS 300-series, Intel i810 through i965, S3 Savage, VIA UniChrome graphics chipsets, and nouveau for Nvidia. Some graphics vendors have written closed-source DRI drivers, including Nvidia[citation needed], ATI, and Kyro. The DRI is supported on Linux, OpenSolaris, FreeBSD, NetBSD, and OpenBSD.
+Several open source DRI drivers have been written, including ones for ATI
+Mach64, ATI Rage128, ATI Radeon, 3dfx Voodoo3 through Voodoo5, Matrox G200
+through G400, SiS 300-series, Intel i810 through i965, S3 Savage, VIA UniChrome
+graphics chipsets, and nouveau for Nvidia. Some graphics vendors have written
+closed-source DRI drivers, including Nvidia[citation needed], ATI, and Kyro.
+The DRI is supported on Linux, OpenSolaris, FreeBSD, NetBSD, and OpenBSD.
