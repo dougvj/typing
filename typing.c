@@ -279,7 +279,7 @@ int main(int argc, char **argv) {
     fclose(input);
   } else {
     fprintf(stderr, "Invalid arguments\n");
-    return 0;
+    return EXIT_FAILURE;
   }
-  return 1;
+  return EXIT_SUCCESS;
 }
